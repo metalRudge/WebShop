@@ -80,6 +80,6 @@ properly in the phases they belong to. Do not paper over them now.
 ## Deployment notes
 
 - Start command: `make tailwind` - terminal 1
--`make run` - terminal 2 for local dev, or `gunicorn webshop.wsgi:application --bind 0.0.0.0:8000` for prod.
+- `make run` - terminal 2 for local dev, or `gunicorn webshop.wsgi:application --bind 0.0.0.0:8000` for prod.
 - Default port: `8000`.
 - Database: SQLite file at `db.sqlite3` next to `manage.py`.
