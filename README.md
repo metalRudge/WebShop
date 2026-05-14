@@ -1,8 +1,3 @@
-# Webshop — Phase 1
-
-Minimal Django scaffold serving a single Hello World / project-start page.
-SQLite for the database, Tailwind via the Play CDN for a lightweight visual
-baseline. Nothing more.
 
 ## Requirements
 
@@ -31,23 +26,20 @@ python manage.py createsuperuser
 ## Project layout
 
 ```
-webshop_phase1/
+WebShop/
 ├── manage.py
-├── db.sqlite3                # created on first `migrate`
-├── webshop/                  # project package (settings, root urls, wsgi/asgi)
+├── db.sqlite3                
+├── webshop/                  
 │   ├── settings.py
 │   ├── urls.py
 │   ├── asgi.py
 │   └── wsgi.py
-└── pages/                    # single app for the Phase 1 homepage
+└── MyShop/                   
     ├── apps.py
     ├── urls.py
     ├── views.py
     └── templates/pages/home.html
 ```
-
-A single `pages` app keeps things conventional and DRY. Routes live in
-`pages/urls.py` and are mounted at the project root in `webshop/urls.py`.
 
 ## Phase roadmap
 
@@ -87,10 +79,8 @@ properly in the phases they belong to. Do not paper over them now.
 
 ## Deployment notes
 
-- Start command: `python manage.py runserver 0.0.0.0:8000` for local dev,
+- Start command: `make tailwind` - terminal 1
+  `make run` - terminal 2 for local dev,
   or `gunicorn webshop.wsgi:application --bind 0.0.0.0:8000` for prod.
 - Default port: `8000`.
-- Database: SQLite file at `db.sqlite3` next to `manage.py`. No external
-  database setup is required for Phase 1. PostgreSQL migration is a
-  later-phase task.
-- No Docker in Phase 1.
+- Database: SQLite file at `db.sqlite3` next to `manage.py`.
