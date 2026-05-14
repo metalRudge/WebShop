@@ -11,3 +11,7 @@ makemigrations:
 	python manage.py makemigrations
 check:
 	python manage.py shell -c "from MyShop.models import Product; print(Product.objects.all())"
+push:
+	git add .
+	git commit -m "Another commit"
+	git push 
