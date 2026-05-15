@@ -1,100 +1,14 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 py-10">
-  <h1 class="text-2xl font-semibold text-gray-900 mb-8">Your Cart</h1>
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-semibold text-slate-900 mb-6">Your Cart</h1>
 
-  {% if items %}
-    <div class="space-y-4" id="cart-items">
-      {% for sku, item in items.items %}
-        <div class="flex items-center gap-4 bg-white rounded-xl p-4 shadow-sm" id="item-{{ sku }}">
-          <div class="flex-1">
-            <p class="font-medium text-gray-900">{{ item.product_name }}</p>
-            <p class="text-sm text-gray-400">{{ sku }}</p>
-            <p class="text-sm text-gray-700 mt-1">${{ item.price }} each</p>
-          </div>
-
-          <!-- Quantity control -->
-          <div class="flex items-center gap-2">
-            <button onclick="updateQty('{{ sku }}', {{ item.quantity }} - 1)"
-                    class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-lg leading-none">−</button>
-            <span id="qty-{{ sku }}" class="w-6 text-center text-sm font-medium">{{ item.quantity }}</span>
-            <button onclick="updateQty('{{ sku }}', {{ item.quantity }} + 1)"
-                    class="w-8 h-8 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-lg leading-none">+</button>
-          </div>
-
-          <!-- Line total -->
-          <p class="w-20 text-right font-medium text-gray-900">
-            ${% widthratio item.price 1 item.quantity %}
-          </p>
-
-          <!-- Remove -->
-          <button onclick="removeItem('{{ sku }}')"
-                  class="text-gray-300 hover:text-red-500 transition ml-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-      {% endfor %}
-    </div>
-
-    <!-- Totals -->
-    <div class="mt-8 border-t pt-6 flex justify-between items-center">
-      <div>
-        <p class="text-sm text-gray-500"><span id="total-count">{{ meta.cart_count }}</span> items</p>
-        <p class="text-2xl font-bold text-gray-900 mt-1">$<span id="total-price">{{ meta.cart_total }}</span></p>
-      </div>
-      <a href="#" class="bg-gray-900 text-white rounded-lg px-6 py-3 text-sm font-medium hover:bg-gray-700 transition">
-        Checkout
-      </a>
-    </div>
-
-  {% else %}
-    <div class="text-center py-24 text-gray-400">
-      <p class="text-lg">Your cart is empty.</p>
-      <a href="{% url 'products' %}" class="mt-4 inline-block text-sm text-gray-900 underline">Browse products</a>
-    </div>
-  {% endif %}
+  <div id="cart-content"
+       hx-get="{% url 'cart' %}"
+       hx-trigger="cartUpdated from:body"
+       hx-swap="innerHTML">
+    {% include "partials/cart_content.html" %}
+  </div>
 </div>
-
-<script>
-const CSRF = '{{ csrf_token }}';
-
-async function updateQty(sku, qty) {
-  const res = await fetch(`/cart/update/${sku}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `quantity=${qty}`,
-  });
-  const data = await res.json();
-  if (res.ok) {
-    if (qty <= 0) {
-      document.getElementById(`item-${sku}`)?.remove();
-    } else {
-      document.getElementById(`qty-${sku}`).textContent = qty;
-    }
-    document.getElementById('total-count').textContent = data.cart_count;
-    document.getElementById('total-price').textContent = data.cart_total.toFixed(2);
-    const badge = document.getElementById('cart-count');
-    if (badge) badge.textContent = data.cart_count;
-  }
-}
-
-async function removeItem(sku) {
-  const res = await fetch(`/cart/remove/${sku}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': CSRF },
-  });
-  const data = await res.json();
-  if (res.ok) {
-    document.getElementById(`item-${sku}`)?.remove();
-    document.getElementById('total-count').textContent = data.cart_count;
-    document.getElementById('total-price').textContent = data.cart_total.toFixed(2);
-    const badge = document.getElementById('cart-count');
-    if (badge) badge.textContent = data.cart_count;
-    if (data.cart_count === 0) location.reload();
-  }
-}
-</script>
 {% endblock %}

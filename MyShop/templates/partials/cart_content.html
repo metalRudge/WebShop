@@ -1,0 +1,55 @@
+{% if cart_items %}
+<div class="cart-items">
+  {% for item in cart_items %}
+  <div class="cart-row">
+
+    <div class="cart-item-info">
+      <span class="cart-item-name">{{ item.name }}</span>
+      <span class="cart-item-price">${{ item.price }}</span>
+    </div>
+
+    <div class="cart-item-controls">
+      <button class="qty-btn"
+              hx-post="{% url 'cart' %}"
+              hx-vals='{"action": "decrease", "sku": "{{ item.sku }}"}'
+              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+              hx-target="#cart-content"
+              hx-swap="innerHTML"
+              aria-label="Decrease quantity">−</button>
+
+      <span class="qty-value">{{ item.quantity }}</span>
+
+      <button class="qty-btn"
+              hx-post="{% url 'cart' %}"
+              hx-vals='{"action": "increase", "sku": "{{ item.sku }}"}'
+              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+              hx-target="#cart-content"
+              hx-swap="innerHTML"
+              aria-label="Increase quantity">+</button>
+
+      <button class="remove-btn"
+              hx-post="{% url 'cart' %}"
+              hx-vals='{"action": "remove", "sku": "{{ item.sku }}"}'
+              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+              hx-target="#cart-content"
+              hx-swap="innerHTML"
+              aria-label="Remove item">×</button>
+    </div>
+
+    <span class="cart-item-subtotal">${{ item.subtotal }}</span>
+
+  </div>
+  {% endfor %}
+</div>
+
+<div class="cart-footer">
+  <div class="cart-total">Total: <strong>${{ cart_total }}</strong></div>
+  <a href="{% url 'checkout' %}" class="btn btn-primary">Checkout</a>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <p>Your cart is empty.</p>
+  <a href="{% url 'products' %}" class="btn btn-secondary">Continue shopping</a>
+</div>
+{% endif %}
