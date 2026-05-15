@@ -1,6 +1,5 @@
-<a href="{% url 'product_detail' product.sku_id %}"
-   class="group block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-
+  <a href="{% url 'product_detail' product.sku_id %}"
+    class="group block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
   <div class="aspect-square bg-gray-100 overflow-hidden">
     {% if product.images_cdn %}
       <img src="{{ product.images_cdn.0 }}?auto=format&fit=crop&w=600&q=80"

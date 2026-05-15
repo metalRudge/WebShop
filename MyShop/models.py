@@ -1,11 +1,10 @@
 from django.db import models
-
+from django.db.models import JSONField
 class Product(models.Model):
     sku_id = models.CharField(max_length=64, primary_key=True)
     product_name = models.CharField(max_length=120)
-    description = models.TextField()
-    image_url = models.URLField(blank=True, null=True)
-    images_cdn = models.URLField(blank=True, null=True)
+    description = models.TextField(max_length=255, blank=True)
+    images_cdn = JSONField(blank=True, null=True,default=list)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     availability = models.BooleanField(default=False)
 
