@@ -1,12 +1,15 @@
 tailwind:
 	tailwindcss -i ./src/input.css -o ./src/output.css --watch
-
+venv:
+	source .venv/bin/activate
 run:
 	python manage.py runserver
 shell:
 	python manage.py shell
 migrate:
+	python manage.py makemigrations
 	python manage.py migrate
+
 makemigrations:
 	python manage.py makemigrations
 check:

@@ -1,20 +1,17 @@
-"""Views for the `MyShop` app.
+import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.shortcuts import render,get_object_or_404
+from .models import Product
 
-Phase 1 only ships a homepage. Function-based views are used because
-they are the simplest fit for a static template render. Switch to
-class-based views only when shared behavior justifies the abstraction.
-"""
 
-from django.shortcuts import render
 def products(request):
-    if(request.headers.get('Hx-Request') == 'true'):
-        return render(request, 'partials/product_content.html')
-    """Render the products page."""
-    context = {
-        'phase': 'Phase 2',
-        'title': 'Webshop - Products',
-    }
-    return render(request, 'pages/products.html', context)
+    products = Product.objects.filter(availability=True)
+    return render(request, 'pages/products.html', {'products': products})
+
+def product_detail(request, sku_id):
+    product = get_object_or_404(Product, sku_id=sku_id)
+    return render(request, 'pages/product_detail.html', {'product': product})
 
 def home(request):
     """Render the Phase 1 Hello World / project-start page."""
