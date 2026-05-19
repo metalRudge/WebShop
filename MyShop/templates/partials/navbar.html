@@ -30,13 +30,10 @@
         Cart
 
         <!-- Badge -->
-        <span id="cart-badge"
-              hx-get="{% url 'cart' %}"
-              hx-trigger="cartUpdated from:body"
-              hx-swap="outerHTML"
-              hx-headers='"HX-Trigger":"cart-badge"'
-              class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-1.5 py-0.5 text-xs font-semibold text-white min-w-[1.25rem] {% if not meta.cart_count %}hidden{% endif %}">
-          {{ meta.cart_count }}
+        <span
+        id="cart-badge"
+        class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-1.5 py-0.5 text-xs font-semibold text-white min-w-[1.25rem] {% if not meta.cart_count %}hidden{% endif %}">
+        {{ meta.cart_count }}
         </span>
       </a>
       <a href="#" class="hidden rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:text-slate-900 sm:inline-block">Login</a>

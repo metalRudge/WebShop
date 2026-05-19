@@ -4,10 +4,7 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
   <h1 class="text-2xl font-semibold text-slate-900 mb-6">Your Cart</h1>
 
-  <div id="cart-content"
-       hx-get="{% url 'cart' %}"
-       hx-trigger="cartUpdated from:body"
-       hx-swap="innerHTML">
+  <div id="cart-content">
     {% include "partials/cart_content.html" %}
   </div>
 </div>

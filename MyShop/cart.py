@@ -1,4 +1,5 @@
 # cart.py
+from decimal import Decimal
 
 def get_cart(request) -> dict:
     return request.session.setdefault("cart", {})
@@ -10,15 +11,19 @@ def save_cart(request, cart: dict):
 def add_to_cart(request, product):
     cart = get_cart(request)
     sku = product.sku_id
-    unit_price = Decimal(str(product.price))
-
+    unit_price = product.price
+ 
     if sku in cart:
         if Decimal(str(cart[sku]["price"])) != unit_price:
             logger.warning(f"Price changed for {sku}, updating.")
             cart[sku]["price"] = str(unit_price)
         cart[sku]["quantity"] += 1
     else:
-        cart[sku] = {"product_name": product.product_name, "price": str(unit_price), "quantity": 1}
+        cart[sku] = {
+            "product_name": product.product_name,
+            "price": str(unit_price),
+            "quantity": 1
+        }
 
     save_cart(request, cart)
 
