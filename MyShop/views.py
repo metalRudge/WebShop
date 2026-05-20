@@ -93,6 +93,11 @@ def product_detail(request, sku_id):
 
     return render(request, "pages/product_detail.html", {"product": product})
 
+def categories(request,category):
+    products = Product.objects.filter(categories = category)
+
+    return render(request, 'pages/products.html',{'products': products})
+
 def checkout(request):
     return render(request, "pages/checkout.html")
 

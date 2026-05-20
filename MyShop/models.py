@@ -3,6 +3,7 @@ from django.db.models import JSONField
 class Product(models.Model):
     sku_id = models.CharField(max_length=64, primary_key=True)
     product_name = models.CharField(max_length=120)
+    categories = models.CharField(max_length=500,blank=True)
     description = models.TextField(max_length=255, blank=True)
     images_cdn = JSONField(blank=True, null=True,default=list)
     price = models.DecimalField(max_digits=10, decimal_places=2)
