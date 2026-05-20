@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-semibold text-slate-900 mb-6">Checkout</h1>
+  <div id="checkout">
+    <form class="max-w-3xl mx-auto"
+  target="_top"
+  method="POST">
+  <fieldset>
+    <legend class="fs-fieldset-title">Checkout</legend>
+    <div class="fs-field">
+      <label class="fs-label" for="requestor-name">Name</label>
+      <input
+        class="fs-input"
+        id="requestor-name"
+        name="requestor-name"
+        placeholder="Enter your full name"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="email-address">Email Address</label>
+      <input
+        class="fs-input"
+        id="email-address"
+        name="email-address"
+        placeholder="Enter your email address"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="phone-number">Phone Number</label>
+      <input
+        class="fs-input"
+        id="phone-number"
+        name="phone-number"
+        placeholder="Enter your phone number"
+        required
+      />
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend class="fs-fieldset-title">Items to Ship</legend>
+    <div class="fs-field col-span-full">
+      <label class="fs-label" for="items-to-ship">Item(s) to be Shipped</label> <!-- ovde ide cart-content iz context procesora -->
+      <textarea
+        class="fs-textarea"
+        id="items-to-ship"
+        name="items-to-ship"
+        placeholder="List items with description and quantity"
+        required
+      ></textarea>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend class="fs-fieldset-title">Pickup Location</legend>
+    <div class="fs-field">
+      <label class="fs-label" for="pickup-address-line1">
+        Street Address Line 1
+      </label>
+      <input
+        class="fs-input"
+        id="pickup-address-line1"
+        name="pickup-address-line1"
+        placeholder="Street address, P.O. box, company name, c/o"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="pickup-address-line2">
+        Street Address Line 2
+      </label>
+      <input
+        class="fs-input"
+        id="pickup-address-line2"
+        name="pickup-address-line2"
+        placeholder="Apartment, suite, unit, building, floor, etc. (optional)"
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="pickup-city">City</label>
+      <input
+        class="fs-input"
+        id="pickup-city"
+        name="pickup-city"
+        placeholder="City"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="pickup-state">
+        State / Province / Region
+      </label>
+      <input
+        class="fs-input"
+        id="pickup-state"
+        name="pickup-state"
+        placeholder="State, province, or region"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="pickup-postal-code">Postal / ZIP Code</label>
+      <input
+        class="fs-input"
+        id="pickup-postal-code"
+        name="pickup-postal-code"
+        placeholder="Postal code or ZIP code"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="pickup-country">Country</label>
+      <input
+        class="fs-input"
+        id="pickup-country"
+        name="pickup-country"
+        placeholder="Country"
+        required
+      />
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend class="fs-fieldset-title">Destination Address</legend>
+    <div class="fs-field">
+      <label class="fs-label" for="destination-address-line1">
+        Street Address Line 1
+      </label>
+      <input
+        class="fs-input"
+        id="destination-address-line1"
+        name="destination-address-line1"
+        placeholder="Street address, P.O. box, company name, c/o"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="destination-address-line2">
+        Street Address Line 2
+      </label>
+      <input
+        class="fs-input"
+        id="destination-address-line2"
+        name="destination-address-line2"
+        placeholder="Apartment, suite, unit, building, floor, etc. (optional)"
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="destination-city">City</label>
+      <input
+        class="fs-input"
+        id="destination-city"
+        name="destination-city"
+        placeholder="City"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="destination-state">
+        State / Province / Region
+      </label>
+      <input
+        class="fs-input"
+        id="destination-state"
+        name="destination-state"
+        placeholder="State, province, or region"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="destination-postal-code">
+        Postal / ZIP Code
+      </label>
+      <input
+        class="fs-input"
+        id="destination-postal-code"
+        name="destination-postal-code"
+        placeholder="Postal code or ZIP code"
+        required
+      />
+    </div>
+    <div class="fs-field">
+      <label class="fs-label" for="destination-country">Country</label>
+      <input
+        class="fs-input"
+        id="destination-country"
+        name="destination-country"
+        placeholder="Country"
+        required
+      />
+    </div>
+  </fieldset>
+    </div>
+  </fieldset>
+  <div class="fs-button-group">
+    <button class="fs-button" type="submit">Submit</button>
+  </div>
+</form>
+  </div>
+</div>
+{% endblock %}
