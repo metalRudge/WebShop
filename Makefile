@@ -1,7 +1,9 @@
+SHELL := /bin/bash
+
 tailwind:
 	tailwindcss -i ./src/input.css -o ./src/output.css --watch
 venv:
-	source .venv/bin/activate
+	source .venv/bin/activate   
 run:
 	python manage.py runserver
 shell:
