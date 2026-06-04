@@ -60,6 +60,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'MyShop.categories.nav_categories',
                 'MyShop.cart.get_cart_meta',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',

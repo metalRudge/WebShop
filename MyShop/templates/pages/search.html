@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Search – WebShop{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  {% if query %}
+    {% if results %}
+      <p class="text-sm text-slate-500 mb-6">
+        {{ results|length }} result{{ results|length|pluralize }} for "<strong class="text-slate-800">{{ query }}</strong>"
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {% for product in results %}
+          {% include "partials/product_content.html" with product=product %}
+        {% endfor %}
+      </div>
+
+    {% else %}
+     <div class="flex justify-center">
+      <div class="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center max-w-sm">
+        <p class="text-sm font-medium text-slate-900">No products found.</p>
+        <p class="mt-1 text-sm text-slate-500">Try a different name or SKU.</p>
+      </div>
+      </div>
+    {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}

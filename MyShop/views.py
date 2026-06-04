@@ -1,8 +1,9 @@
+from .models import Product, Category
 from django.http import HttpResponse
 from django.urls import reverse 
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import render, get_object_or_404
-from .models import Product
+from django.db import models
 from .cart import get_cart_meta, add_to_cart, remove_from_cart
 import logging
 
@@ -68,8 +69,20 @@ def _build_cart_context(request) -> dict:
 
 
 def products(request):
-    products = Product.objects.filter(availability=True)
-    return render(request, 'pages/products.html', {'products': products})
+    category = request.GET.get("category")
+    qs = Product.objects.filter(availability=True)
+
+    if category:
+        qs = qs.filter(categories__name=category)
+
+    categories = Category.objects.all().order_by("name")
+
+    return render(request, "pages/products.html", {
+        "products": qs,
+        "categories": categories,
+        "active_category": category,
+    })
+
 
 @require_http_methods(["GET", "POST"])
 def product_detail(request, sku_id):
@@ -93,18 +106,20 @@ def product_detail(request, sku_id):
 
     return render(request, "pages/product_detail.html", {"product": product})
 
-def categories(request,category):
-    products = Product.objects.filter(categories = category)
-
-    return render(request, 'pages/products.html',{'products': products})
-
 def checkout(request):
-    return render(request, "pages/checkout.html")
+    context = _build_cart_context(request)
+    return render(request, "pages/checkout.html",context)
 
-def home(request):
-    """Render the Phase 1 Hello World / project-start page."""
-    context = {
-        'phase': 'Phase 1',
-        'title': 'Webshop - Hello World',
-    }
-    return render(request, 'pages/home.html', context)
+def about(request):
+    return render(request,"pages/about.html")
+
+def search(request):
+    query = request.GET.get("q","").strip()
+    results = Product.objects.none()
+
+    if query:
+        results = Product.objects.filter(availability=True).filter(models.Q(product_name__icontains=query) | models.Q(sku_id__icontains=query) | models.Q(categories__icontains=query))
+    return render(request,"pages/search.html",{
+        "results":results,
+        "query":query,
+    })

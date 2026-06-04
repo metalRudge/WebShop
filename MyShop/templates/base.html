@@ -7,15 +7,16 @@
   <title>{% block title %}WebShop{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'output.css' %}">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="min-h-screen bg-slate-50 text-slate-900">
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+
   {% include "partials/navbar.html" %}
 
-  <main id="main-content">
+  <main id="main-content" class="flex-1">
     {% block content %}{% endblock %}
   </main>
 
   {% include "partials/footer.html" %}
-</body>
 </html>
