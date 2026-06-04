@@ -2,12 +2,17 @@ from .models import Product, Category
 from django.http import HttpResponse
 from django.urls import reverse 
 from django.views.decorators.http import require_http_methods
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect,get_object_or_404
 from django.db import models
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+from .models import Order,OrderItem
 from .cart import get_cart_meta, add_to_cart, remove_from_cart
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 
 @require_http_methods(["GET", "POST"])
@@ -114,6 +119,7 @@ def about(request):
     return render(request,"pages/about.html")
 
 def search(request):
+
     query = request.GET.get("q","").strip()
     results = Product.objects.none()
 
@@ -123,3 +129,59 @@ def search(request):
         "results":results,
         "query":query,
     })
+
+
+def checkout(request):
+    if request.method == "POST":
+        context = _build_cart_context(request)
+        cart_items = context["cart_items"]
+        cart_total = context["cart_total"]
+
+
+        if not cart_items:
+            return redirect("cart")
+
+        order = Order.objects.create(
+            full_name = request.POST.get("full_name"),
+            email = request.POST.get("email"),
+            phone = request.POST.get("phone"),
+            address_line1 = request.POST.get("address_line1"),
+            address_line2 = request.POST.get("address_line2"),
+            city = request.POST.get("city"),
+            state = request.POST.get("state"),
+            postal_code = request.POST.get("postal_code"),
+            country = request.POST.get("country"),
+            total = cart_total,
+        )
+        for item in cart_items:
+            OrderItem.objects.create(
+                order = order,
+                sku   = item["sku"],
+                product_name = item["product_name"],
+                quantity = item["quantity"],
+                unit_price = item["price"],
+            )
+        _send_confirmation_email(order)
+        request.session["cart"] = {}
+        request.session.modified = True
+
+        return redirect('order_confirmation',pk=order.pk)
+    return render(request,"pages/checkout.html", _build_cart_context(request))
+
+def _send_confirmation_email(request):
+    try:
+        html = render_to_string("emails/order_confirmation.html", {"order": order})
+        send_mail(
+            subject        = f"Order #{order.pk} confirmed – WebShop",
+            message        = f"Thank you {order.full_name}, order #{order.pk} totalling ${order.total} is confirmed.",
+            from_email     = settings.DEFAULT_FROM_EMAIL,
+            recipient_list = [order.email],
+            html_message   = html,
+            fail_silently  = False,
+        )
+    except Exception as e:
+        logger.error(f"Failed to send confirmation email for order: {e}")
+
+def order_confirmation(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    return render(request, "pages/order_confirmation.html", {"order": order})
