@@ -105,7 +105,7 @@
                 <span class="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">Default</span>
                 {% endif %}
               </div>
-              <p class="text-slate-500">{{ addr.line1 }}{% if addr.line2 %}, {{ addr.line2 }}{% endif %}</p>
+              <p class="text-slate-500">{{ addr.address_line1 }}{% if addr.address_line2 %}, {{ addr.address_line2 }}{% endif %}</p>
               <p class="text-slate-500">{{ addr.city }}{% if addr.state %}, {{ addr.state }}{% endif %} {{ addr.postal_code }}</p>
               <p class="text-slate-500">{{ addr.country }}</p>
             </div>
@@ -129,33 +129,30 @@
         </ul>
 
         <!-- Add address form -->
-        <form x-show="adding" x-cloak method="POST" action="{% url 'account' %}"
-              class="px-6 py-5 border-t border-slate-100 space-y-4">
+ <form x-show="adding" x-cloak method="POST" action="{% url 'account' %}" class="px-6 py-5 space-y-4">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_address">
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1">Label</label>
-              <input type="text" name="label" placeholder="Home, Work…"
+              <label class="block text-xs font-medium text-slate-600 mb-1">Address line 1</label>
+              <input type="text" name="first_name" value="{{ user.first_name }}"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
             </div>
-            <div class="flex items-end gap-2">
-              <label class="flex items-center gap-2 text-sm text-slate-600 pb-2">
-                <input type="checkbox" name="is_default" class="rounded border-slate-300 text-teal-600">
-                Set as default
-              </label>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Address line 2</label>
+              <input type="text" name="last_name" value="{{ addr.address_line2 }}"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
             </div>
-          </div>
+        </div>
 
-          <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Address line 1</label>
-            <input type="text" name="line1" placeholder="Street and number"
+            <input type="text" name="address_line1" placeholder="Street and number"
               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Address line 2 <span class="text-slate-400">(optional)</span></label>
-            <input type="text" name="line2"
+            <input type="text" name="address_line2"
               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
           </div>
 

@@ -3,10 +3,11 @@ import jwt
 import datetime
 import functools
 
-
+from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login,logout as auth_logout 
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
@@ -187,7 +188,7 @@ def login(request):
 
         if user is None:
             return render(request, "pages/login.html", {"error": "Invalid username or password."})
-
+        auth_login(request, user)
         _set_auth_session(request, user, _generate_tokens(user))
         return redirect("account")
 
@@ -211,6 +212,7 @@ def register(request):
             return render(request, "pages/register.html", {"error": "Email already registered."})
 
         user = User.objects.create_user(username=username, email=email, password=password)
+        auth_login(request,user)
         _set_auth_session(request, user, _generate_tokens(user))
         return redirect("account")
 
@@ -219,7 +221,7 @@ def register(request):
 
 def logout(request):
     request.session.flush()
-    return redirect("home")
+    return redirect("products")
 
 
 def token_refresh(request):
@@ -250,8 +252,8 @@ def token_refresh(request):
 
 @jwt_required
 def account(request):
-    user = User.objects.get(id=request.session.get("user_id"))
-    orders = Order.objects.filter(email=user.email).order_by("-created_at")
+    user = User.objects.get(id=request.user_payload["user_id"])
+    orders = user.orders.order_by("-created_at") # type: ignore
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -261,14 +263,11 @@ def account(request):
             user.last_name = request.POST.get("last_name", "").strip()
             user.email = request.POST.get("email", "").strip()
             user.save()
-            request.session["username"] = user.username
 
         elif action == "add_address":
             Address.objects.update_or_create(
                 user=user,
                 defaults={
-                    "full_name": request.POST.get("full_name", "").strip(),
-                    "email": request.POST.get("email", "").strip(),
                     "phone": request.POST.get("phone", "").strip(),
                     "address_line1": request.POST.get("address_line1", "").strip(),
                     "address_line2": request.POST.get("address_line2", "").strip(),
@@ -295,26 +294,31 @@ def account(request):
 # ═══════════════════════════════════════════════════════════
 #  Checkout & Orders
 # ═══════════════════════════════════════════════════════════
-
+@jwt_required
 def checkout(request):
+    context = _build_cart_context(request)
+    user = User.objects.get(id=request.user_payload["user_id"])
+    cart_items = context["cart_items"]
+    cart_total = context["cart_total"]
+
+    if not cart_items:
+        return redirect("cart")
+
+    # pull default address
+    default_address = user.addresses.filter(is_default=True).first() or user.addresses.first() \ # type: ignore
+
     if request.method == "POST":
-        context    = _build_cart_context(request)
-        cart_items = context["cart_items"]
-        cart_total = context["cart_total"]
-
-        if not cart_items:
-            return redirect("cart")
-
         order = Order.objects.create(
-            full_name     = request.POST.get("full_name"),
-            email         = request.POST.get("email"),
-            phone         = request.POST.get("phone"),
-            address_line1 = request.POST.get("address_line1"),
-            address_line2 = request.POST.get("address_line2", ""),
-            city          = request.POST.get("city"),
-            state         = request.POST.get("state"),
-            postal_code   = request.POST.get("postal_code"),
-            country       = request.POST.get("country"),
+            user          = user,
+            full_name     = request.POST.get("full_name") or f"{user.first_name} {user.last_name}".strip() or user.username,
+            email         = request.POST.get("email")     or user.email,
+            phone         = request.POST.get("phone")     or (default_address.phone         if default_address else ""),
+            address_line1 = request.POST.get("address_line1") or (default_address.address_line1 if default_address else ""),
+            address_line2 = request.POST.get("address_line2") or (default_address.address_line2 if default_address else ""),
+            city          = request.POST.get("city")      or (default_address.city          if default_address else ""),
+            state         = request.POST.get("state")     or (default_address.state         if default_address else ""),
+            postal_code   = request.POST.get("postal_code") or (default_address.postal_code if default_address else ""),
+            country       = request.POST.get("country")   or (default_address.country       if default_address else ""),
             total         = cart_total,
         )
 
@@ -327,58 +331,43 @@ def checkout(request):
                 unit_price   = item["price"],
             )
 
-        # ── Save/update address for logged-in user ────────────────
-        user_id = request.session.get("user_id")
-        if user_id:
-            user = User.objects.filter(id=user_id).first()
-            if user:
-                Address.objects.update_or_create(
-                    user=user,
-                    defaults={
-                        "full_name":     request.POST.get("full_name",     "").strip(),
-                        "email":         request.POST.get("email",         "").strip(),
-                        "phone":         request.POST.get("phone",         "").strip(),
-                        "address_line1": request.POST.get("address_line1", "").strip(),
-                        "address_line2": request.POST.get("address_line2", "").strip(),
-                        "city":          request.POST.get("city",          "").strip(),
-                        "state":         request.POST.get("state",         "").strip(),
-                        "postal_code":   request.POST.get("postal_code",   "").strip(),
-                        "country":       request.POST.get("country",       "").strip(),
-                    },
-                )
-        # ─────────────────────────────────────────────────────────
+        _send_confirmation_email(order)
+        request.session["cart"] = {}
+        request.session.modified = True
+        return redirect("order_confirmation", pk=order.pk)
 
-        _send_confirmation_email(order)          # #1 was missing
-        request.session["cart"]  = {}            # #1 was missing
-        request.session.modified = True          # #1 was missing
-        return redirect("order_confirmation", pk=order.pk)  # #1 was missing
-
-    context = _build_cart_context(request)
-
-    # ── Pre-fill from saved address ───────────────────────────────
-    user_id = request.session.get("user_id")
-    if user_id:
-        user = User.objects.filter(id=user_id).first()
-        if user:
-            context["default_address"] = Address.objects.filter(user=user).first()
+    # GET — pre-fill form
+    context["prefill"] = {
+        "full_name":     f"{user.first_name} {user.last_name}".strip() or user.username,
+        "email":         user.email,
+        "phone":         default_address.phone         if default_address else "",
+        "address_line1": default_address.address_line1 if default_address else "",
+        "address_line2": default_address.address_line2 if default_address else "",
+        "city":          default_address.city          if default_address else "",
+        "state":         default_address.state         if default_address else "",
+        "postal_code":   default_address.postal_code   if default_address else "",
+        "country":       default_address.country       if default_address else "",
+    }
 
     return render(request, "pages/checkout.html", context)
 
-
 def _send_confirmation_email(order):
     try:
-        html = render_to_string("emails/order_confirmation.html", {"order": order})
-        send_mail(
-            subject=f"Order #{order.pk} confirmed – WebShop",
-            message=f"Thank you {order.full_name}, order #{order.pk} totalling ${order.total} is confirmed.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[order.email],
-            html_message=html,
-            fail_silently=False,
+        subject  = f"Order #{order.pk} confirmed – WebShop"
+        text     = f"Thank you {order.customer_name}, order #{order.pk} totalling ${order.total} is confirmed."
+        html     = render_to_string("emails/order_confirmation.html", {"order": order})
+
+        email = EmailMultiAlternatives(
+            subject      = subject,
+            body         = text,
+            from_email   = settings.DEFAULT_FROM_EMAIL,
+            to           = [order.customer_email],
         )
+        email.attach_alternative(html, "text/html")
+        email.send()
+
     except Exception as e:
         logger.error(f"Failed to send confirmation email for order #{order.pk}: {e}")
-
 
 def order_confirmation(request, pk):
     order = get_object_or_404(Order, pk=pk)

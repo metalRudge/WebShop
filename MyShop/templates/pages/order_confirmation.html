@@ -13,8 +13,8 @@
 
   <h1 class="text-2xl font-bold mb-2">Order Confirmed!</h1>
   <p class="text-gray-500 mb-8">
-    Thank you, <strong>{{ order.full_name }}</strong>. Your order <strong>#{{ order.pk }}</strong> has been placed.
-    A confirmation email has been sent to <strong>{{order.email}}</strong>
+    Thank you, <strong>{{ order.customer_name }}</strong>. Your order <strong>#{{ order.pk }}</strong> has been placed.
+    A confirmation email has been sent to <strong>{{ order.customer_email}}</strong>
   </p>
 
   <div class="bg-white rounded-xl shadow p-6 text-left mb-6">
@@ -35,15 +35,15 @@
 
   <div class="bg-white rounded-xl shadow p-6 text-left mb-8">
     <h2 class="font-semibold text-lg mb-3 border-b pb-2">Shipping To</h2>
-    <p>Name : {{order.full_name}}</p>
-    <p>Email: {{order.email}}</p>
-    <p>Tel: {{order.phone}}</p>
+    <p>Name : {{user.customer_name}}</p>
+    <p>Email: {{user.customer_email}}</p>
+    <p>Tel: {{user.phone}}</p>
     <p>{{ order.address_line1 }}{% if order.address_line2 %}, {{ order.address_line2 }}{% endif %}</p>
     <p>{{ order.city }}, {{ order.state }} {{ order.postal_code }}</p>
     <p>{{ order.country }}</p>
   </div>
 
-  <a href="{% url 'home' %}" class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-semibold px-8 py-3 rounded-lg transition">
+  <a href="{% url 'products' %}" class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-semibold px-8 py-3 rounded-lg transition">
     Continue Shopping
   </a>
   <div class="bg-amber-50 border  border-amber-200 rounded-xl p-6 text-center p-4 mt-6">

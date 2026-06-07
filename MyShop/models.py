@@ -28,7 +28,41 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name + f"  sku: ({self.sku_id}) \n"
 
-class Order(models.Model):
+
+class AddressBase(models.Model):
+    phone         = models.CharField(max_length=30)
+    address_line1 = models.CharField(max_length=200)
+    address_line2 = models.CharField(max_length=200, blank=True, default="")
+    city          = models.CharField(max_length=100)
+    state            = models.CharField(max_length=100)
+    postal_code   = models.CharField(max_length=20)
+    country       = models.CharField(max_length=100)
+    created_at    = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        abstract = True  # no DB table, just shared field definitions
+
+class Address(AddressBase):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="addresses",
+    )
+    label = models.CharField(max_length=50, blank=True, default="")
+    is_default = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-is_default", "-created_at"]
+
+    def __str__(self):
+        label = f" ({self.label})" if self.label else ""
+        return f"{self.user.username}{label} - {self.city}, {self.country}"
+    
+
+class Order(AddressBase):
+    user = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name="orders")
+    full_name = user.name
+    total = models.DecimalField(max_digits=100,decimal_places=2)
 
     STATUS_CHOICES = [
         ("pending",    "Pending"),
@@ -37,45 +71,25 @@ class Order(models.Model):
         ("delivered",  "Delivered"),
         ("cancelled",  "Cancelled"),
     ]
+    
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default="pending")
 
-    full_name     = models.CharField(max_length=120)
-    email         = models.EmailField()
-    phone         = models.CharField(max_length=30)
-    address_line1 = models.CharField(max_length=200)
-    address_line2 = models.CharField(max_length=200, blank=True, default="")
-    city          = models.CharField(max_length=100)
-    state         = models.CharField(max_length=100)
-    postal_code   = models.CharField(max_length=20)
-    country       = models.CharField(max_length=100)
-    total         = models.DecimalField(max_digits=10, decimal_places=2)
-    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    created_at    = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Order #{self.pk} – {self.full_name}"
-
-
-class Address(models.Model):
-    user          = models.OneToOneField(User, on_delete=models.CASCADE, related_name="address", null=True, blank=True)
-    full_name     = models.CharField(max_length=120)
-    email         = models.EmailField()
-    phone         = models.CharField(max_length=30)
-    address_line1 = models.CharField(max_length=200)
-    address_line2 = models.CharField(max_length=200, blank=True, default="")
-    city          = models.CharField(max_length=100)
-    state         = models.CharField(max_length=100)
-    postal_code   = models.CharField(max_length=20)
-    country       = models.CharField(max_length=100)
-    created_at    = models.DateTimeField(auto_now_add=True)
+    @property
+    def customer_name(self):
+        if not self.user:
+            return "Guest"
+        return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+    
+    @property
+    def customer_email(self):
+        return self.user.email if self.user else ""
 
     def __str__(self):
-        return self.full_name + f"  email: ({self.email}) \n"
-
-
+        return f"{self.pk} – {self.state}, {self.city}"  
 
 
 class OrderItem(models.Model):
-    order        = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    order        = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items",)
     sku          = models.CharField(max_length=50)
     product_name = models.CharField(max_length=200)
     quantity     = models.PositiveIntegerField()

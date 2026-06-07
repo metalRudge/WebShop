@@ -12,7 +12,6 @@
           <button
             hx-post="{% url 'cart' %}"
             hx-vals='{"action": "decrease", "sku": "{{ item.sku }}"}'
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-target="#cart-content"
             hx-swap="innerHTML"
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -23,7 +22,6 @@
           <button
             hx-post="{% url 'cart' %}"
             hx-vals='{"action": "increase", "sku": "{{ item.sku }}"}'
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-target="#cart-content"
             hx-swap="innerHTML"
             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -32,7 +30,6 @@
           <button
             hx-post="{% url 'cart' %}"
             hx-vals='{"action": "remove", "sku": "{{ item.sku }}"}'
-            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
             hx-target="#cart-content"
             hx-swap="innerHTML"
             class="ml-1 text-xs text-slate-400 hover:text-red-500"
