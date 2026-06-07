@@ -82,6 +82,12 @@
         <p class="text-sm font-medium">Your message has been sent. We'll get back to you soon!</p>
       </div>
       {% endif %}
+      {% if error %}
+      <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-6">
+      <i data-lucide="circle-alert" class="w-5 h-5 shrink-0"></i>
+      <p class="text-sm font-medium">Something went wrong. Please try again or email us directly.</p>
+      </div>
+      {% endif %}
 
       <form method="POST" action="{% url 'contact' %}" class="space-y-5">
         {% csrf_token %}

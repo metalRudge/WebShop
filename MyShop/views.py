@@ -261,29 +261,31 @@ def account(request):
             request.session["username"] = user.username
 
         elif action == "add_address":
-            Address.objects.create(
+            Address.objects.update_or_create(
                 user=user,
-                label=request.POST.get("label", "Home").strip(),
-                line1=request.POST.get("line1", "").strip(),
-                line2=request.POST.get("line2", "").strip(),
-                city=request.POST.get("city", "").strip(),
-                state=request.POST.get("state", "").strip(),
-                postal_code=request.POST.get("postal_code", "").strip(),
-                country=request.POST.get("country", "Serbia").strip(),
-                is_default=request.POST.get("is_default") == "on",
+                defaults={
+                    "full_name": request.POST.get("full_name", "").strip(),
+                    "email": request.POST.get("email", "").strip(),
+                    "phone": request.POST.get("phone", "").strip(),
+                    "address_line1": request.POST.get("line1", "").strip(),
+                    "address_line2": request.POST.get("line2", "").strip(),
+                    "city": request.POST.get("city", "").strip(),
+                    "state": request.POST.get("state", "").strip(),
+                    "postal_code": request.POST.get("postal_code", "").strip(),
+                    "country": request.POST.get("country", "Serbia").strip(),
+                },
             )
 
         elif action == "delete_address":
-            addr_id = request.POST.get("address_id")
-            Address.objects.filter(id=addr_id, user=user).delete()
+            Address.objects.filter(user=user).delete()
 
         return redirect("account")
 
+    address = Address.objects.filter(user=user).first()
     return render(request, "pages/account.html", {
         "user": user,
         "orders": orders,
-        "addresses": user.addresses.all(),
-        "default_address": user.addresses.filter(is_default=True).first(),
+        "address": address,
     })
 
 
@@ -321,13 +323,41 @@ def checkout(request):
                 quantity=item["quantity"],
                 unit_price=item["price"],
             )
+        # ── Save address for logged-in user ──────────────────────
+        user_id = request.session.get("user_id")
+        if user_id:
+            user = User.objects.filter(id=user_id).first()
+            if user:
+                address_line1       = request.POST.get("address_line1", "").strip()
+                city        = request.POST.get("city", "").strip()
+                postal_code = request.POST.get("postal_code", "").strip()
+                country     = request.POST.get("country", "").strip()
 
-        _send_confirmation_email(order)
-        request.session["cart"] = {}
-        request.session.modified = True
-        return redirect("order_confirmation", pk=order.pk)
+                already_exists = Address.objects.filter(
+                    user            =user,
+                    address_line1   =address_line1,
+                    city            =city,
+                    postal_code     =postal_code,
+                ).exists()
 
-    return render(request, "pages/checkout.html", _build_cart_context(request))
+                if not already_exists:
+                    is_first = not Address.objects.filter(user=user).exists()
+                    Address.objects.create(
+                        user                = user,
+                        label               = "Shipping",
+                        address_line1       = address_line1,
+                        address_line2       = request.POST.get("address_line2", "").strip(),
+                        city                = city,
+                        state               = request.POST.get("state", "").strip(),
+                        postal_code         = postal_code,
+                        country             = country,
+                        is_default          = is_first,  # first address becomes default
+                    )
+        # ─────────────────────────────────────────────────────────
+
+        context = _build_cart_context(request)
+
+    return render(request, "pages/checkout.html",context)
 
 
 def _send_confirmation_email(order):

@@ -18,11 +18,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 EMAIL_BACKEND      = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "stefankprog@outlook.com"
 
+
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-6%x0#pfk@n5f2(-yl6!h5c)nl_^*txgyecy%5@ps%)(c6(vr#g'
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
