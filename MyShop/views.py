@@ -1,8 +1,10 @@
 import logging
 import jwt
 import datetime
+import functools
 
-from django.db import models
+
+from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -51,6 +53,7 @@ def _set_auth_session(request, user, tokens):
 
 
 def jwt_required(view_func):
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         token = request.session.get("access_token")
         if not token:
@@ -166,7 +169,7 @@ def search(request):
 
     if query:
         results = Product.objects.filter(availability=True).filter(
-            models.Q(product_name__icontains=query) | models.Q(sku_id__icontains=query)
+            Q(product_name__icontains=query)   | Q(sku_id__icontains=query)
         )
 
     return render(request, "pages/search.html", {"results": results, "query": query})
@@ -267,8 +270,8 @@ def account(request):
                     "full_name": request.POST.get("full_name", "").strip(),
                     "email": request.POST.get("email", "").strip(),
                     "phone": request.POST.get("phone", "").strip(),
-                    "address_line1": request.POST.get("line1", "").strip(),
-                    "address_line2": request.POST.get("line2", "").strip(),
+                    "address_line1": request.POST.get("address_line1", "").strip(),
+                    "address_line2": request.POST.get("address_line2", "").strip(),
                     "city": request.POST.get("city", "").strip(),
                     "state": request.POST.get("state", "").strip(),
                     "postal_code": request.POST.get("postal_code", "").strip(),
@@ -295,7 +298,7 @@ def account(request):
 
 def checkout(request):
     if request.method == "POST":
-        context = _build_cart_context(request)
+        context    = _build_cart_context(request)
         cart_items = context["cart_items"]
         cart_total = context["cart_total"]
 
@@ -303,61 +306,63 @@ def checkout(request):
             return redirect("cart")
 
         order = Order.objects.create(
-            full_name=request.POST.get("full_name"),
-            email=request.POST.get("email"),
-            phone=request.POST.get("phone"),
-            address_line1=request.POST.get("address_line1"),
-            address_line2=request.POST.get("address_line2", ""),
-            city=request.POST.get("city"),
-            state=request.POST.get("state"),
-            postal_code=request.POST.get("postal_code"),
-            country=request.POST.get("country"),
-            total=cart_total,
+            full_name     = request.POST.get("full_name"),
+            email         = request.POST.get("email"),
+            phone         = request.POST.get("phone"),
+            address_line1 = request.POST.get("address_line1"),
+            address_line2 = request.POST.get("address_line2", ""),
+            city          = request.POST.get("city"),
+            state         = request.POST.get("state"),
+            postal_code   = request.POST.get("postal_code"),
+            country       = request.POST.get("country"),
+            total         = cart_total,
         )
 
         for item in cart_items:
             OrderItem.objects.create(
-                order=order,
-                sku=item["sku"],
-                product_name=item["product_name"],
-                quantity=item["quantity"],
-                unit_price=item["price"],
+                order        = order,
+                sku          = item["sku"],
+                product_name = item["product_name"],
+                quantity     = item["quantity"],
+                unit_price   = item["price"],
             )
-        # ── Save address for logged-in user ──────────────────────
+
+        # ── Save/update address for logged-in user ────────────────
         user_id = request.session.get("user_id")
         if user_id:
             user = User.objects.filter(id=user_id).first()
             if user:
-                address_line1       = request.POST.get("address_line1", "").strip()
-                city        = request.POST.get("city", "").strip()
-                postal_code = request.POST.get("postal_code", "").strip()
-                country     = request.POST.get("country", "").strip()
-
-                already_exists = Address.objects.filter(
-                    user            =user,
-                    address_line1   =address_line1,
-                    city            =city,
-                    postal_code     =postal_code,
-                ).exists()
-
-                if not already_exists:
-                    is_first = not Address.objects.filter(user=user).exists()
-                    Address.objects.create(
-                        user                = user,
-                        label               = "Shipping",
-                        address_line1       = address_line1,
-                        address_line2       = request.POST.get("address_line2", "").strip(),
-                        city                = city,
-                        state               = request.POST.get("state", "").strip(),
-                        postal_code         = postal_code,
-                        country             = country,
-                        is_default          = is_first,  # first address becomes default
-                    )
+                Address.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        "full_name":     request.POST.get("full_name",     "").strip(),
+                        "email":         request.POST.get("email",         "").strip(),
+                        "phone":         request.POST.get("phone",         "").strip(),
+                        "address_line1": request.POST.get("address_line1", "").strip(),
+                        "address_line2": request.POST.get("address_line2", "").strip(),
+                        "city":          request.POST.get("city",          "").strip(),
+                        "state":         request.POST.get("state",         "").strip(),
+                        "postal_code":   request.POST.get("postal_code",   "").strip(),
+                        "country":       request.POST.get("country",       "").strip(),
+                    },
+                )
         # ─────────────────────────────────────────────────────────
 
-        context = _build_cart_context(request)
+        _send_confirmation_email(order)          # #1 was missing
+        request.session["cart"]  = {}            # #1 was missing
+        request.session.modified = True          # #1 was missing
+        return redirect("order_confirmation", pk=order.pk)  # #1 was missing
 
-    return render(request, "pages/checkout.html",context)
+    context = _build_cart_context(request)
+
+    # ── Pre-fill from saved address ───────────────────────────────
+    user_id = request.session.get("user_id")
+    if user_id:
+        user = User.objects.filter(id=user_id).first()
+        if user:
+            context["default_address"] = Address.objects.filter(user=user).first()
+
+    return render(request, "pages/checkout.html", context)
 
 
 def _send_confirmation_email(order):
