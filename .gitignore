@@ -8,3 +8,4 @@ venv/
 staticfiles/
 package-lock.json
 node_modules/
+webshop/settings.py

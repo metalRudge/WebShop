@@ -260,36 +260,36 @@ def account(request):
 
         if action == "update_profile":
             user.first_name = request.POST.get("first_name", "").strip()
-            user.last_name = request.POST.get("last_name", "").strip()
-            user.email = request.POST.get("email", "").strip()
+            user.last_name  = request.POST.get("last_name",  "").strip()
+            user.email      = request.POST.get("email",      "").strip()
             user.save()
 
         elif action == "add_address":
-            Address.objects.update_or_create(
-                user=user,
-                defaults={
-                    "phone": request.POST.get("phone", "").strip(),
-                    "address_line1": request.POST.get("address_line1", "").strip(),
-                    "address_line2": request.POST.get("address_line2", "").strip(),
-                    "city": request.POST.get("city", "").strip(),
-                    "state": request.POST.get("state", "").strip(),
-                    "postal_code": request.POST.get("postal_code", "").strip(),
-                    "country": request.POST.get("country", "Serbia").strip(),
-                },
+            Address.objects.create(
+                user          = user,
+                label         = request.POST.get("label",         "").strip(),
+                phone         = request.POST.get("phone",         "").strip(),
+                address_line1 = request.POST.get("address_line1", "").strip(),
+                address_line2 = request.POST.get("address_line2", "").strip(),
+                city          = request.POST.get("city",          "").strip(),
+                state         = request.POST.get("state",         "").strip(),
+                postal_code   = request.POST.get("postal_code",   "").strip(),
+                country       = request.POST.get("country",       "Serbia").strip(),
+                is_default    = request.POST.get("is_default") == "on",
             )
 
         elif action == "delete_address":
-            Address.objects.filter(user=user).delete()
+            address_id = request.POST.get("address_id")
+            Address.objects.filter(id=address_id, user=user).delete()
 
         return redirect("account")
 
-    address = Address.objects.filter(user=user).first()
+    addresses = Address.objects.filter(user=user).order_by("-is_default", "id")
     return render(request, "pages/account.html", {
-        "user": user,
-        "orders": orders,
-        "address": address,
+        "user":      user,
+        "orders":    orders,
+        "addresses": addresses,
     })
-
 
 # ═══════════════════════════════════════════════════════════
 #  Checkout & Orders
@@ -305,13 +305,11 @@ def checkout(request):
         return redirect("cart")
 
     # pull default address
-    default_address = user.addresses.filter(is_default=True).first() or user.addresses.first() \ # type: ignore
+    default_address = user.addresses.filter(is_default=True).first() or user.addresses.first()  # type: ignore
 
     if request.method == "POST":
         order = Order.objects.create(
             user          = user,
-            full_name     = request.POST.get("full_name") or f"{user.first_name} {user.last_name}".strip() or user.username,
-            email         = request.POST.get("email")     or user.email,
             phone         = request.POST.get("phone")     or (default_address.phone         if default_address else ""),
             address_line1 = request.POST.get("address_line1") or (default_address.address_line1 if default_address else ""),
             address_line2 = request.POST.get("address_line2") or (default_address.address_line2 if default_address else ""),

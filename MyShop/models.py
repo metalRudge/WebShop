@@ -61,7 +61,7 @@ class Address(AddressBase):
 
 class Order(AddressBase):
     user = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name="orders")
-    full_name = user.name
+   
     total = models.DecimalField(max_digits=100,decimal_places=2)
 
     STATUS_CHOICES = [
