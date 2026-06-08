@@ -299,53 +299,61 @@ def checkout(request):
     context = _build_cart_context(request)
     user = User.objects.get(id=request.user_payload["user_id"])
     cart_items = context["cart_items"]
-    cart_total = context["cart_total"]
 
     if not cart_items:
         return redirect("cart")
 
-    # pull default address
-    default_address = user.addresses.filter(is_default=True).first() or user.addresses.first()  # type: ignore
+    default_address = (
+        user.addresses.filter(is_default=True).first() # type: ignore
+        or user.addresses.first() # type: ignore
+    )
+
+    address_fields = [
+        "phone",
+        "address_line1",
+        "address_line2",
+        "city",
+        "state",
+        "postal_code",
+        "country",
+    ]
+
+    address_data = {
+        field: getattr(default_address, field, "")
+        for field in address_fields
+    }
+
+    context["prefill"] = {
+        "full_name": f"{user.first_name} {user.last_name}".strip() or user.username,
+        "email": user.email,
+        **address_data,
+    }
 
     if request.method == "POST":
+        order_data = {
+            field: request.POST.get(field) or address_data[field]
+            for field in address_fields
+        }
+
         order = Order.objects.create(
-            user          = user,
-            phone         = request.POST.get("phone")     or (default_address.phone         if default_address else ""),
-            address_line1 = request.POST.get("address_line1") or (default_address.address_line1 if default_address else ""),
-            address_line2 = request.POST.get("address_line2") or (default_address.address_line2 if default_address else ""),
-            city          = request.POST.get("city")      or (default_address.city          if default_address else ""),
-            state         = request.POST.get("state")     or (default_address.state         if default_address else ""),
-            postal_code   = request.POST.get("postal_code") or (default_address.postal_code if default_address else ""),
-            country       = request.POST.get("country")   or (default_address.country       if default_address else ""),
-            total         = cart_total,
+            user=user,
+            total=context["cart_total"],
+            **order_data,
         )
 
         for item in cart_items:
             OrderItem.objects.create(
-                order        = order,
-                sku          = item["sku"],
-                product_name = item["product_name"],
-                quantity     = item["quantity"],
-                unit_price   = item["price"],
+                order=order,
+                sku=item["sku"],
+                product_name=item["product_name"],
+                quantity=item["quantity"],
+                unit_price=item["price"],
             )
 
         _send_confirmation_email(order)
         request.session["cart"] = {}
         request.session.modified = True
         return redirect("order_confirmation", pk=order.pk)
-
-    # GET — pre-fill form
-    context["prefill"] = {
-        "full_name":     f"{user.first_name} {user.last_name}".strip() or user.username,
-        "email":         user.email,
-        "phone":         default_address.phone         if default_address else "",
-        "address_line1": default_address.address_line1 if default_address else "",
-        "address_line2": default_address.address_line2 if default_address else "",
-        "city":          default_address.city          if default_address else "",
-        "state":         default_address.state         if default_address else "",
-        "postal_code":   default_address.postal_code   if default_address else "",
-        "country":       default_address.country       if default_address else "",
-    }
 
     return render(request, "pages/checkout.html", context)
 
