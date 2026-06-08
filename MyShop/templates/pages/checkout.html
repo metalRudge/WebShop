@@ -5,7 +5,8 @@
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 py-8">
 
-  <a href="{% url 'cart' %}" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors mb-8">
+  <a href="{% url 'cart' %}"
+    class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors mb-8">
     ← Edit cart
   </a>
 
@@ -18,69 +19,63 @@
 
         {# 1. Contact #}
         <section>
+
           <div class="flex items-center gap-3 mb-4">
-            <span class="size-8 rounded-full bg-slate-900 text-white text-xs font-bold grid place-items-center shrink-0">1</span>
             <h2 class="text-xl font-bold text-slate-900">Your Details</h2>
           </div>
           <div class="space-y-3 max-w-md">
-            <div>
-              <label for="full_name" class="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span class="text-red-500">*</span></label>
-              <input id="full_name" name="full_name" type="text" autocomplete="name" required placeholder="Enter your full name"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-            </div>
-            <div>
-              <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">Email <span class="text-red-500">*</span></label>
-              <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-            </div>
-            <div>
-              <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">Phone <span class="text-red-500">*</span></label>
-              <input id="phone" name="phone" type="tel" autocomplete="tel" required placeholder="+381 60 123 4567"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-            </div>
+            <label for="full_name" class="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span class="text-red-500">*</span></label>
+            <input id="full_name" name="full_name" type="text" autocomplete="name" required
+              placeholder="Enter your full name" value="{{ request.POST.full_name|default:prefill.full_name }}"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">Email <span class="text-red-500">*</span></label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"
+              value="{{ request.POST.email|default:prefill.email }}"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"><label
+              for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">Phone <span
+                class="text-red-500">*</span></label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" required placeholder="+381 60 123 4567"
+              value="{{ request.POST.phone|default:prefill.phone }}"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
           </div>
         </section>
 
         <hr class="border-slate-200 max-w-md">
-
+        <pre>{{ prefill }}</pre>
         {# 2. Shipping #}
         <section>
           <div class="flex items-center gap-3 mb-4">
-            <span class="size-8 rounded-full bg-slate-900 text-white text-xs font-bold grid place-items-center shrink-0">2</span>
+            <span
+              class="size-8 rounded-full bg-slate-900 text-white text-xs font-bold grid place-items-center shrink-0">2</span>
             <h2 class="text-xl font-bold text-slate-900">Delivery Address</h2>
           </div>
           <div class="space-y-3 max-w-md">
-            <div>
-              <label for="address_line1" class="block text-sm font-medium text-slate-700 mb-1.5">Street Address <span class="text-red-500">*</span></label>
-              <input id="address_line1" name="address_line1" type="text" autocomplete="address-line1" required placeholder="Street address, P.O. box"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-            </div>
-            <div>
-              <label for="address_line2" class="block text-sm font-medium text-slate-700 mb-1.5">Apartment, suite <span class="text-slate-400 font-normal">(optional)</span></label>
-              <input id="address_line2" name="address_line2" type="text" autocomplete="address-line2" placeholder="Apt, suite, unit"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-            </div>
+            <label for="address_line1" class="block text-sm font-medium text-slate-700 mb-1.5">Address 1 <span class="text-red-500">*</span></label>
+            <input id="address_line1" name="address_line1" type="text" autocomplete="address-line1" required
+              placeholder="Street address, P.O. box"
+              value="{{ request.POST.address_line1|default:prefill.address_line1 }}"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <label for="address_line2" class="block text-sm font-medium text-slate-700 mb-1.5">Address 2 <span class="text-red-500">*</span></label>
+            <input id="address_line2" name="address_line2" type="text" autocomplete="address-line2"
+              placeholder="Apt, suite, unit" value="{{ request.POST.address_line2|default:prefill.address_line2 }}"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
             <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label for="city" class="block text-sm font-medium text-slate-700 mb-1.5">City <span class="text-red-500">*</span></label>
-                <input id="city" name="city" type="text" autocomplete="address-level2" required placeholder="City"
-                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-              </div>
-              <div>
-                <label for="state" class="block text-sm font-medium text-slate-700 mb-1.5">State / Province <span class="text-red-500">*</span></label>
-                <input id="state" name="state" type="text" autocomplete="address-level1" required placeholder="State or province"
-                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-              </div>
-              <div>
-                <label for="postal_code" class="block text-sm font-medium text-slate-700 mb-1.5">Postal Code <span class="text-red-500">*</span></label>
-                <input id="postal_code" name="postal_code" type="text" autocomplete="postal-code" required placeholder="Postal code"
-                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-              </div>
-              <div>
-                <label for="country" class="block text-sm font-medium text-slate-700 mb-1.5">Country <span class="text-red-500">*</span></label>
-                <input id="country" name="country" type="text" autocomplete="country-name" required placeholder="Country" value="Serbia"
-                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
-              </div>
+              <label for="city" class="block text-sm font-medium text-slate-700 mb-1.5">City:  <span class="text-red-500">*</span></label>
+              <input id="city" name="city" type="text" autocomplete="address-level2" required placeholder="City"
+                value="{{ request.POST.city|default:prefill.city }}"
+                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
+              <label for="state" class="block text-sm font-medium text-slate-700 mb-1.5">State:  <span class="text-red-500">*</span></label>
+              <input id="state" name="state" type="text" autocomplete="address-level1" required
+                placeholder="State or province" value="{{ request.POST.state|default:prefill.state }}"
+                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
+              <label for="postal_code" class="block text-sm font-medium text-slate-700 mb-1.5">Postal Code:  <span class="text-red-500">*</span></label>
+              <input id="postal_code" name="postal_code" type="text" autocomplete="postal-code" required
+                placeholder="Postal code" value="{{ request.POST.postal_code|default:prefill.postal_code }}"
+                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
+              <label for="country" class="block text-sm font-medium text-slate-700 mb-1.5">Country:  <span class="text-red-500">*</span></label>
+              <input id="country" name="country" type="text" autocomplete="country-name" required placeholder="Country"
+                value="{{ request.POST.country|default:prefill.country }}"
+                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
             </div>
           </div>
         </section>
@@ -90,7 +85,8 @@
         {# 3. Payment #}
         <section>
           <div class="flex items-center gap-3 mb-4">
-            <span class="size-8 rounded-full bg-slate-900 text-white text-xs font-bold grid place-items-center shrink-0">3</span>
+            <span
+              class="size-8 rounded-full bg-slate-900 text-white text-xs font-bold grid place-items-center shrink-0">3</span>
             <h2 class="text-xl font-bold text-slate-900">Payment</h2>
           </div>
           <div class="space-y-3 max-w-md">
