@@ -265,6 +265,10 @@ def account(request):
             user.save()
 
         elif action == "add_address":
+            is_default = request.POST.get('is_default') == 'on'
+            if is_default:
+                Address.objects.filter(user=user,is_default=True).update(is_default=False)
+
             Address.objects.create(
                 user          = user,
                 label         = request.POST.get("label",         "").strip(),
@@ -275,15 +279,24 @@ def account(request):
                 state         = request.POST.get("state",         "").strip(),
                 postal_code   = request.POST.get("postal_code",   "").strip(),
                 country       = request.POST.get("country",       "Serbia").strip(),
-                is_default    = request.POST.get("is_default") == "on",
+                is_default    = is_default,
             )
 
         elif action == "delete_address":
             address_id = request.POST.get("address_id")
-            Address.objects.filter(id=address_id, user=user).delete()
+            address = Address.objects.filter(id=address_id, user=user).first()
 
-        return redirect("account")
+            if address:
+                was_default = address.is_default
+                address.delete()
 
+                if was_default:
+                    next_address = Address.objects.filter(user=user).first()
+                    if next_address:
+                        next_address.is_default = True
+                        next_address.save()
+
+            return redirect("account")
     addresses = Address.objects.filter(user=user).order_by("-is_default", "id")
     return render(request, "pages/account.html", {
         "user":      user,
